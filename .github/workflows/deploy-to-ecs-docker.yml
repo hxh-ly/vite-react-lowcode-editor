@@ -7,9 +7,9 @@ on:
 env:
   # --- 主要修改在这里 ---
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }} # 你的 Docker Hub 用户名
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/your-repo-name # 你的 Docker Hub 镜像名，如 'myusername/my-frontend-app'
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/low_code # 你的 Docker Hub 镜像名，如 'myusername/my-frontend-app'
   # --- 修改结束 ---
-  CONTAINER_NAME: "your-container-name" # 你的容器名称，如 my-frontend-app
+  CONTAINER_NAME: "container_low_code" # 你的容器名称，如 my-frontend-app
   ECS_HOST: ${{ secrets.ALIYUN_ECS_HOST }} # 你的 ECS 公网 IP
   ECS_USER: ${{ secrets.ALIYUN_ECS_USER }} # 你的 ECS 登录用户，如 deployer
 
