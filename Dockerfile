@@ -1,5 +1,5 @@
 # 阶段 1: 构建阶段
-FROM node:18-alpine AS builder
+FROM node:20.18.3-alpine AS builder
 WORKDIR /app
 # 首先复制依赖定义文件并安装依赖
 # 利用 Docker 缓存层，只有当 package.json 或 lock 文件变化时才重新运行 npm ci
