@@ -81,10 +81,22 @@ jobs:
             sudo docker pull ${{ env.IMAGE_NAME }}:main
 
             # 运行一个新的容器
+            # --restart=always 确保容器在退出时自动重启，包括服务器重启后
+            # --health-cmd 使用wget进行健康检查（nginx:alpine包含wget）
+            # --health-interval 设置健康检查间隔为30秒
+            # --health-timeout 设置健康检查超时为5秒
+            # --health-retries 设置健康检查失败重试次数为3次
+            # --memory 和 --cpus 设置资源限制，防止资源耗尽
             sudo docker run -d \
               --name ${{ env.CONTAINER_NAME }} \
               -p 80:80 \
               --restart=always \
+              --health-cmd="wget --no-verbose --tries=1 --spider http://localhost:80/project/lowcode/ || exit 1" \
+              --health-interval=30s \
+              --health-timeout=5s \
+              --health-retries=3 \
+              --memory="512m" \
+              --cpus="0.5" \
               ${{ env.IMAGE_NAME }}:main
             # --- 修改结束 ---
 
