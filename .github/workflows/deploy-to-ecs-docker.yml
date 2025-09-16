@@ -87,6 +87,7 @@ jobs:
             # --health-timeout 设置健康检查超时为5秒
             # --health-retries 设置健康检查失败重试次数为3次
             # --memory 和 --cpus 设置资源限制，防止资源耗尽
+            # --log-opt max-size/max-file 配置日志管理，防止日志过大
             sudo docker run -d \
               --name ${{ env.CONTAINER_NAME }} \
               -p 80:80 \
@@ -97,8 +98,50 @@ jobs:
               --health-retries=3 \
               --memory="512m" \
               --cpus="0.5" \
+              --log-opt max-size=10m \
+              --log-opt max-file=3 \
               ${{ env.IMAGE_NAME }}:main
             # --- 修改结束 ---
 
             # （可选）清理不再使用的旧镜像，避免磁盘空间占用
             sudo docker image prune -af
+            
+            # 确保Docker服务开机自启
+            # 这一步很重要，确保ECS服务器重启后Docker服务能自动启动
+            # docker容器的--restart=always配置依赖于Docker服务本身能启动
+            sudo systemctl enable docker.service
+            
+            # 额外的保障措施：检查Docker服务状态并记录日志
+            echo "检查Docker服务状态..."
+            sudo systemctl status docker.service || true
+            
+            # 如果Docker服务未运行，手动启动它
+            # 这是一个重要的保障措施，确保即使Docker服务没有运行，部署也能继续
+            echo "检查Docker服务是否在运行..."
+            if ! sudo systemctl is-active --quiet docker.service; then
+              echo "Docker服务未运行，正在启动..."
+              sudo systemctl start docker.service || echo "Docker服务启动失败，请检查系统配置"
+              # 启动后等待几秒钟确保服务稳定
+              sleep 5
+            fi
+            
+            # 查看容器重启策略配置是否正确
+            echo "检查容器重启策略..."
+            docker inspect --format '{{ .HostConfig.RestartPolicy.Name }}' ${{ env.CONTAINER_NAME }} || true
+            
+            # 记录Docker版本信息，便于排查问题
+            docker --version
+            
+            # 为容器添加额外的自动启动保障
+            # 如果容器创建成功但未运行，尝试启动它
+            docker start ${{ env.CONTAINER_NAME }} || echo "容器已在运行或启动失败"
+            
+            # 查看当前运行的容器，确认部署成功
+            docker ps
+            
+            # 记录系统资源状态，便于排查资源不足问题
+            echo "系统内存状态："
+            free -h
+            
+            echo "磁盘空间状态："
+            df -h
