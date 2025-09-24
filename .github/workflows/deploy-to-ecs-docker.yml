@@ -1,8 +1,7 @@
 name: Build, Push to Docker Hub and Deploy to ECS
 
 on:
-  push:
-    branches: [ "main" ]
+  workflow_dispatch:
   # 上面是工作元数据
 env:
   # --- 主要修改在这里 ---
